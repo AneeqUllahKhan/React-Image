@@ -5,6 +5,8 @@ import { TableLoader, ImageLoader } from "../components/Loader";
 const ImageComponent = () => {
   const [images, setImages] = useState([]);
   const [loadingTable, setLoadingTable] = useState(true);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [imagesPerPage] = useState(5); // Adjust the number of images per page as needed
 
   useEffect(() => {
     const fetchImages = async () => {
@@ -37,6 +39,14 @@ const ImageComponent = () => {
     setImages(updatedImages);
   };
 
+  // Calculate the indexes of the images to be displayed on the current page
+  const indexOfLastImage = currentPage * imagesPerPage;
+  const indexOfFirstImage = indexOfLastImage - imagesPerPage;
+  const currentImages = images.slice(indexOfFirstImage, indexOfLastImage);
+
+  // Change page
+  const paginate = (pageNumber) => setCurrentPage(pageNumber);
+
   return (
     <div className="container mt-3">
       <table className="table">
@@ -54,7 +64,7 @@ const ImageComponent = () => {
             <TableLoader />
           ) : (
             // Render each image in a row
-            images.map((image, index) => (
+            currentImages.map((image, index) => (
               <tr key={image.id}>
                 <td>{image.id}</td>
                 <td>{image.createdAt}</td>
@@ -80,6 +90,16 @@ const ImageComponent = () => {
           )}
         </tbody>
       </table>
+      {/* Pagination */}
+      <ul className="pagination">
+        {Array.from({ length: Math.ceil(images.length / imagesPerPage) }, (_, i) => (
+          <li key={i + 1} className={`page-item ${currentPage === i + 1 ? "active" : ""}`}>
+            <button className="page-link" onClick={() => paginate(i + 1)}>
+              {i + 1}
+            </button>
+          </li>
+        ))}
+      </ul>
     </div>
   );
 };
