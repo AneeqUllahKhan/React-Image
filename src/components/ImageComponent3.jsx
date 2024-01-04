@@ -2,10 +2,11 @@ import React, { useState, useEffect } from "react";
 import axios from "axios";
 import { TableLoader, ImageLoader } from "./Loader";
 import Pagination from "./Pagination";
-import ImageModal from "./ImageModal";
-import 'bootstrap/dist/css/bootstrap.min.css';
+import ImageModalPre from "./ImageModalPre";
+import ImageModalPost from "./ImageModalPost";
+import "bootstrap/dist/css/bootstrap.min.css";
 
-const ImageComponent = () => {
+const ImageComponent3 = () => {
   const [images, setImages] = useState([]);
   const [loadingTable, setLoadingTable] = useState(true);
   const [currentPage, setCurrentPage] = useState(1);
@@ -16,10 +17,10 @@ const ImageComponent = () => {
     const fetchImages = async () => {
       try {
         const response = await axios.get(
-          "https://stormy-wig-cod.cyclic.app/api/v1/mysql/getImages"
+          "https://stormy-wig-cod.cyclic.app/api/v1/getPostImage"
         );
 
-        const newImages = response.data?.imageUrls || [];
+        const newImages = response.data || [];
         setImages(newImages);
         setLoadingTable(false);
       } catch (error) {
@@ -35,17 +36,21 @@ const ImageComponent = () => {
     return () => clearInterval(intervalId);
   }, []);
 
-  const handleImageLoad = (index) => {
-    const updatedImages = [...images];
-    updatedImages[index].loading = false;
-    setImages(updatedImages);
+  const openImageModalPre = (image) => {
+    setSelectedImage(image);
+    const modal = new bootstrap.Modal(
+      document.getElementById("imageModalPre"),
+      {}
+    );
+    modal.show();
   };
 
-  const paginate = (pageNumber) => setCurrentPage(pageNumber);
-
-  const openImageModal = (image) => {
+  const openImageModalPost = (image) => {
     setSelectedImage(image);
-    const modal = new bootstrap.Modal(document.getElementById('imageModal'), {});
+    const modal = new bootstrap.Modal(
+      document.getElementById("imageModalPost"),
+      {}
+    );
     modal.show();
   };
 
@@ -65,32 +70,42 @@ const ImageComponent = () => {
             <th>ID</th>
             <th>Image Created At</th>
             <th>Image Updated At</th>
-            <th>Image</th>
+            <th>Pre Image</th>
+            <th>Post Image</th>
           </tr>
         </thead>
         <tbody>
           {loadingTable ? (
             <TableLoader />
           ) : (
-            currentImages.map((image, index) => (
+            currentImages.map((image) => (
               <tr key={image.id}>
                 <td>{image.id}</td>
                 <td>{image.createdAt}</td>
                 <td>{image.updatedAt}</td>
                 <td>
-                  {image.loading ? (
-                    <ImageLoader />
-                  ) : (
-                    <img
-                      key={image.id}
-                      src={`https://stormy-wig-cod.cyclic.app${image.path}`}
-                      alt={`Image ${image.id}`}
-                      style={{ width: "200px", height: "180px", cursor: "pointer" }}
-                      loading="lazy"
-                      onClick={() => openImageModal(image)}
-                      onLoad={() => handleImageLoad(index)}
-                    />
-                  )}
+                  <img
+                    src={`https://stormy-wig-cod.cyclic.app${image.preImagePath}`}
+                    alt={`Pre Image ${image.id}`}
+                    style={{
+                      width: "200px",
+                      height: "180px",
+                      cursor: "pointer",
+                    }}
+                    onClick={() => openImageModalPre(image)}
+                  />
+                </td>
+                <td>
+                  <img
+                    src={`https://stormy-wig-cod.cyclic.app${image.postImagePath}`}
+                    alt={`Post Image ${image.id}`}
+                    style={{
+                      width: "200px",
+                      height: "180px",
+                      cursor: "pointer",
+                    }}
+                    onClick={() => openImageModalPost(image)}
+                  />
                 </td>
               </tr>
             ))
@@ -101,12 +116,13 @@ const ImageComponent = () => {
       <Pagination
         currentPage={currentPage}
         totalPages={Math.ceil(images.length / imagesPerPage)}
-        onPageChange={paginate}
+        onPageChange={setCurrentPage}
       />
 
-      <ImageModal selectedImage={selectedImage} closeModal={closeImageModal} />
+      <ImageModalPre selectedImage={selectedImage} closeModal={closeImageModal} />
+      <ImageModalPost selectedImage={selectedImage} closeModal={closeImageModal} />
     </div>
   );
 };
 
-export default React.memo(ImageComponent);
+export default ImageComponent3;
